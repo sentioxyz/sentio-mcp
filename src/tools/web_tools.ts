@@ -45,7 +45,7 @@ export function registerWebTools(server: McpServer, client: Client, options: any
         orgId: z.string().describe("Organization ID"),
     },
         async ({ userId, orgId }) => {
-            const projects = await getProjectList(userId, orgId, client, host);
+            const projects = await getProjectList(userId, orgId, client);
             return {
                 content: projects.map(p => ({
                     type: "resource",

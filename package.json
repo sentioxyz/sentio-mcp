@@ -6,7 +6,7 @@
    "type": "module",
    "scripts": {
       "start": "node build/index.js",
-      "test": "jest"
+      "build": "tsc --outDir build"
    },
    "keywords": [
       "mcp",

@@ -144,4 +144,4 @@ yarn-error.log*
 .vscode/
 *.log
 coverage/
-dist/ 
+build/
