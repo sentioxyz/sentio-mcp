@@ -1,0 +1,32 @@
+{
+   "name": "sentio-mcp",
+   "version": "1.0.0",
+   "description": "sentio mcp",
+   "main": "build/index.js",
+   "type": "module",
+   "scripts": {
+      "start": "node build/index.js",
+      "test": "jest"
+   },
+   "keywords": [
+      "mcp",
+      "multi-cloud",
+      "platform"
+   ],
+   "author": "",
+   "license": "ISC",
+   "dependencies": {
+      "@modelcontextprotocol/sdk": "^1.8.0",
+      "@sentio/api": "^1.0.2",
+      "dotenv": "^16.3.1",
+      "typescript": "^5.8.2",
+      "command-line-args": "^6.0.1",
+      "command-line-usage": "^7.0.3",
+      "zod": "^3.24.2"
+   },
+   "devDependencies": {
+      "jest": "^29.7.0",
+      "@types/command-line-args": "^5.2.3",
+      "@types/command-line-usage": "^5.0.4"
+   }
+}
