@@ -1,37 +1,38 @@
-import commandLineArgs from 'command-line-args'
-import commandLineUsage from 'command-line-usage'
+#!/usr/bin/env node
+
+import { Command } from 'commander'
 import { runStart } from './start.js'
+import { runServe } from './serve.js'
 import { getApiKey } from "./apikey.js";
 
-const mainDefinitions = [
-    {name: 'command', defaultOption: true},
-    {name: 'apiKey', alias: 'k',defaultValue: getApiKey(), type: String},
-    {name: 'host', alias: 'H', defaultValue: "https://app.sentio.xyz", type: String},
-    {name: 'help', alias: 'h', type: Boolean}
-]
+const program = new Command()
 
-const mainUsage = [
-    {
-        header: 'Sentio Api MCP',
-        content: 'Sentio Api MCP'
-    },
-    {
-        header: 'Options',
-        optionList: [
-            {name: 'help', description: 'Show help'},
-            {name: 'api-key', alias: 'k', description: 'API key'},
-            {name: 'token', alias: 't', description: 'jwt token'},
-            {name: 'host', alias: 'H', description: 'Host'},
-        ]
-    }  
-]
+program
+    .name('Sentio Api MCP')
+    .description('Sentio Api MCP')
 
-const mainOptions = commandLineArgs(mainDefinitions, {stopAtFirstUnknown: true})
-const argv = mainOptions._unknown || []
-const usage = commandLineUsage(mainUsage)
+// Default command (stdio mode)
+program
+    .command('start')
+    .option('-k, --apiKey <key>', 'API key', getApiKey())
+    .option('-t, --token <token>', 'JWT token')
+    .option('-H, --host <url>', 'Sentio host endpoint', 'https://app.sentio.xyz')
+    .helpOption('-h, --help', 'Show help')
+    .action((options) => {
+        // Commander doesn't have a direct equivalent to _unknown, so we'll pass an empty array
+        const argv: string[] = []
+        runStart(argv, options)
+    })
 
-if (mainOptions.help){
-    console.log(usage)
-} else {
-    runStart(argv, mainOptions)
-}
+// Serve command (SSE mode)
+program
+    .command('serve')
+    .description('Start MCP server with SSE support')
+    .option('-k, --apiKey <key>', 'API key', getApiKey())
+    .option('-H, --host <url>', 'Sentio host endpoint', 'https://app.sentio.xyz')
+    .option('-p, --port <number>', 'Port to run the server on', '3000')
+    .action((options) => {
+        runServe(options)
+    })
+
+program.parse()

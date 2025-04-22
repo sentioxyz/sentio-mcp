@@ -1,14 +1,13 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { createClient } from "@hey-api/client-fetch";
-import { getApiKey } from "./apikey.js";
-import { registerWebTools, getProjectList, getCurrentUserOrOrg } from "./tools/web_tools.js";
-import { registerDataTools } from "./tools/data_tools.js";
-import { registerPriceTools } from "./tools/price_tools.js";
-import { registerProcessorTools } from "./tools/processor_tools.js";
-import { registerAlertsTools } from "./tools/alerts_tools.js";
+import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
+import {StdioServerTransport} from "@modelcontextprotocol/sdk/server/stdio.js";
+import {createClient} from "@hey-api/client-fetch";
+import {getCurrentUserOrOrg, getProjectList, registerWebTools} from "./tools/web_tools.js";
+import {registerDataTools} from "./tools/data_tools.js";
+import {registerPriceTools} from "./tools/price_tools.js";
+import {registerProcessorTools} from "./tools/processor_tools.js";
+import {registerAlertsTools} from "./tools/alerts_tools.js";
 
-export async function runStart(argv: string[], options: any) {
+export async function setupServer(options: any) {
     const client = createClient({
         baseUrl: options.host,
     })
@@ -48,17 +47,24 @@ export async function runStart(argv: string[], options: any) {
             `${options.host}/${project.ownerName}/${project.slug}`,
             async (uri: URL) => {
                 return {
-                    contents: [{ 
-                        uri: uri.toString(), 
+                    contents: [{
+                        uri: uri.toString(),
                         mimeType: "application/json",
-                        text: JSON.stringify(project) 
+                        text: JSON.stringify(project)
                     }]
                 }
             }
         )
     }
 
+    return { server, userId, orgId };
+}
+
+export async function runStart(argv: string[], options: any) {
+    const { server } = await setupServer(options);
+
     const transport = new StdioServerTransport();
     await server.connect(transport);
     console.error("MCP Server running on stdio");
 }
+
