@@ -7,6 +7,11 @@
    "bin": {
       "sentio-mcp": "build/cli.js"
    },
+   "files": [
+      "build/",
+      "src/",
+      "LICENSE"
+   ],
    "scripts": {
       "start": "node build/index.js",
       "build": "tsc --outDir build"
