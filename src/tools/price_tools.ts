@@ -6,16 +6,16 @@ import { Client } from "@hey-api/client-fetch";
 export function registerPriceTools(server: McpServer, client: Client, options: any) {
     server.tool("getPrice", "Get price of a given coin", {
         symbol: z.string().describe("Coin Symbol"),
-        timestamp: z.date().describe("Timestamp"),
-        chain: z.string().describe("Chain"),
-        address: z.string().describe("Address"),
+        timestamp: z.string().describe("Timestamp, in ISO format"),
+        chain: z.optional(z.string()).describe("Chain"),
+        address: z.optional(z.string()).describe("Address"),
     }, async ({ symbol, timestamp, chain, address }) => {
         const response = await PriceService.getPrice({
             query: {
                 'coinId.symbol': symbol,
                 'coinId.address.address': address,
                 'coinId.address.chain': chain,
-                timestamp: timestamp.toISOString(),
+                timestamp: timestamp,
             },
             client
         });

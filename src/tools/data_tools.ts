@@ -115,7 +115,10 @@ export function registerDataTools(server: McpServer, client: Client, options: an
             id: z.string().optional(),
             labelSelector: z.record(z.string()).optional(),
             aggregate: z.any().optional(),
-            functions: z.array(z.any()).optional(),
+            functions: z.array(z.object({
+                name: z.string(),
+                parameters: z.record(z.any()).optional()
+            })).optional(),
             color: z.string().optional(),
             disabled: z.boolean().optional()
         })).describe("Array of metric queries"),

@@ -1,7 +1,32 @@
-import http from "node:http";
-import {SSEServerTransport} from "@modelcontextprotocol/sdk/server/sse.js";
-import express from "express";
-import {setupServer} from "./start.js";
+import { createClient } from "@hey-api/client-fetch";
+import { FastMCP } from "fastmcp";
+import { z } from "zod";
+import { registerWebTools } from "./tools/web_tools.js";
+import { registerDataTools } from "./tools/data_tools.js";
+import { registerPriceTools } from "./tools/price_tools.js";
+import { registerAlertsTools } from "./tools/alerts_tools.js";
+import { registerProcessorTools } from "./tools/processor_tools.js";
+
+// Create an adapter object to bridge between FastMCP and McpServer interfaces
+class ServerAdapter<T extends Record<string, unknown> | undefined> {
+    private server: FastMCP<T>;
+
+    constructor(server: FastMCP<T>) {
+        this.server = server;
+    }
+
+    // Implement the `tool` method used by the tools
+    tool(name: string, description: string, parameters: any, execute: any) {
+        this.server.addTool({
+            name: name,
+            description: description,
+            parameters: z.object(parameters),
+            execute: async (args: any, context: any) => {
+                return await execute(args);
+            }
+        });
+    }
+}
 
 function decodeJWT(token: string) {
     const parts = token.split('.');
@@ -9,63 +34,72 @@ function decodeJWT(token: string) {
     return JSON.parse(json);
 }
 
-function extractAuth(req: express.Request) {
-    const token = req.header('Authorization')
-    if (token) {
-        // decode jwt token, extract subject as key
-        const {sub} = decodeJWT(token)
-        return {sub, token }
-    }
-    const apiKey = req.header('api-key')
-    if (apiKey) {
-        return{ sub: apiKey,  apiKey}
-    }
-    return undefined
-}
-
 export async function runServe(options: any) {
-    const app = express();
     const port = options.port || 3000;
 
-
-    // Create HTTP server
-    const httpServer = http.createServer(app);
-    let transports: Map<string, SSEServerTransport> = new Map();
-    // Set up SSE endpoint
-    app.get('/sse', async (req, res) => {
-        const transport = new SSEServerTransport('/message', res);
-        await transport.start();
-        const auth = extractAuth(req) ?? {sub: options.apiKey, apiKey: options.apiKey}
-
-        const {server} = await setupServer({...options, ...auth});
-        await server.connect(transport);
-        if (auth?.sub) {
-            transports.set(auth.sub, transport)
-        } else {
-            console.error("No key provided")
-        }
-        // Handle client disconnection
-        req.on('close', () => {
-            transport?.close()?.catch(console.error);
-            if (auth?.sub) {
-                transports.delete(auth.sub)
+    // Create FastMCP server instance
+    const server = new FastMCP({
+        name: "Sentio MCP Server",
+        version: "1.0.0",
+        authenticate: async (request) => {
+            // Extract auth from headers
+            const authHeader = request.headers["authorization"];
+            const apiKeyHeader = request.headers["api-key"];
+            if (authHeader) {
+                // JWT authentication
+                const { sub } = decodeJWT(authHeader);
+                return { sub, token: authHeader };
+            } else if (apiKeyHeader) {
+                // API Key authentication
+                return { sub: apiKeyHeader, apiKey: apiKeyHeader };
+            } else if (options.apiKey) {
+                // Fallback to options.apiKey
+                return { sub: options.apiKey, apiKey: options.apiKey };
             }
-        });
-    });
-
-    app.post('/message', express.json(), async (req, res) => {
-        const auth = extractAuth(req) ?? {sub: options.apiKey, apiKey: options.apiKey}
-        if (!auth.sub) {
-            res.status(401).send("No auth provided")
-            return
+            
+            throw new Response(null, {
+                status: 401,
+                statusText: "Unauthorized"
+            });
         }
-        const transport = transports.get(auth.sub)
-        await transport?.handlePostMessage(req, res);
     });
 
-    // Start the server
-    httpServer.listen(port, () => {
-        console.error(`MCP Server running on SSE at http://localhost:${port}`);
-        console.error(`Connect to the SSE endpoint at http://localhost:${port}/sse`);
+    // Create API client for tools
+    const client = createClient({
+        baseUrl: options.host || "https://app.sentio.xyz",
     });
+    client.interceptors.request.use((request) => {
+        if (options.apiKey) {
+            request.headers.set("api-key", options.apiKey);
+        } else if (options.token) {
+            request.headers.set("Authorization", `Bearer ${options.token}`);
+        }
+        return request;
+    });
+
+    // Create an adapter to make the tools work with FastMCP
+    const adapter = new ServerAdapter(server);
+    
+    // Register all tools from tools directory using the adapter
+    registerWebTools(adapter as any, client, options);
+    registerDataTools(adapter as any, client, options);
+    registerPriceTools(adapter as any, client, options);
+    registerAlertsTools(adapter as any, client, options);
+    registerProcessorTools(adapter as any, client, options);
+
+    // Start the server with HTTP transport
+    await server.start({
+        transportType: "sse",
+        sse: {
+            endpoint: "/sse",
+            port,
+        }
+    });
+
+    // Track connections and disconnections
+    server.on("connect", (event) => {
+        console.log(`Client connected: ${event.session}`);
+    });
+
+    console.error(`MCP Server running at http://localhost:${port}`);
 }
