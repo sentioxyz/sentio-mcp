@@ -1,4 +1,4 @@
-import { createClient } from "@hey-api/client-fetch";
+import { Client, createClient } from "@hey-api/client-fetch";
 import { FastMCP } from "fastmcp";
 import { z } from "zod";
 import { registerWebTools } from "./tools/web_tools.js";
@@ -10,9 +10,11 @@ import { registerProcessorTools } from "./tools/processor_tools.js";
 // Create an adapter object to bridge between FastMCP and McpServer interfaces
 class ServerAdapter<T extends Record<string, unknown> | undefined> {
     private server: FastMCP<T>;
+    private client: Client;
 
-    constructor(server: FastMCP<T>) {
+    constructor(server: FastMCP<T>, client: Client) {
         this.server = server;
+        this.client = client;
     }
 
     // Implement the `tool` method used by the tools
@@ -21,7 +23,16 @@ class ServerAdapter<T extends Record<string, unknown> | undefined> {
             name: name,
             description: description,
             parameters: z.object(parameters),
-            execute: async (args: any, context: any) => {
+            execute: async (args: any, { session }) => {
+                this.client.interceptors.request.use((request) => {
+                    if (session?.token) {
+                        request.headers.set("Authorization", `${session.token}`);
+                    } else if (session?.apiKey) {
+                        request.headers.set("api-key", `${session.apiKey}`);
+                    }
+                    return request;
+                })
+                // Pass the context to tools so they can access auth
                 return await execute(args);
             }
         });
@@ -45,10 +56,11 @@ export async function runServe(options: any) {
             // Extract auth from headers
             const authHeader = request.headers["authorization"];
             const apiKeyHeader = request.headers["api-key"];
+            
             if (authHeader) {
                 // JWT authentication
                 const { sub } = decodeJWT(authHeader);
-                return { sub, token: authHeader };
+                return { sub, token: authHeader.startsWith('Bearer ') ? authHeader : `Bearer ${authHeader}` };
             } else if (apiKeyHeader) {
                 // API Key authentication
                 return { sub: apiKeyHeader, apiKey: apiKeyHeader };
@@ -68,7 +80,9 @@ export async function runServe(options: any) {
     const client = createClient({
         baseUrl: options.host || "https://app.sentio.xyz",
     });
-    client.interceptors.request.use((request) => {
+    
+    // We'll set up the auth interceptor using the context
+    client.interceptors.request.use((request, context: any) => {
         if (options.apiKey) {
             request.headers.set("api-key", options.apiKey);
         } else if (options.token) {
@@ -78,7 +92,7 @@ export async function runServe(options: any) {
     });
 
     // Create an adapter to make the tools work with FastMCP
-    const adapter = new ServerAdapter(server);
+    const adapter = new ServerAdapter(server, client);
     
     // Register all tools from tools directory using the adapter
     registerWebTools(adapter as any, client, options);
@@ -87,6 +101,23 @@ export async function runServe(options: any) {
     registerAlertsTools(adapter as any, client, options);
     registerProcessorTools(adapter as any, client, options);
 
+    // Track connections and disconnections
+    server.on("connect", (event) => {
+        const session = event.session;
+      
+        // Access the current roots
+        console.log("Initial roots:", session.roots);
+      
+        // Listen for changes to the roots
+        session.on("rootsChanged", (event) => {
+          console.log("Roots changed:", event.roots);
+        });
+    });
+
+    server.on("disconnect", (event) => {
+        console.log(`Client disconnected: ${event.session}`);
+    });
+
     // Start the server with HTTP transport
     await server.start({
         transportType: "sse",
@@ -94,11 +125,6 @@ export async function runServe(options: any) {
             endpoint: "/sse",
             port,
         }
-    });
-
-    // Track connections and disconnections
-    server.on("connect", (event) => {
-        console.log(`Client connected: ${event.session}`);
     });
 
     console.error(`MCP Server running at http://localhost:${port}`);
