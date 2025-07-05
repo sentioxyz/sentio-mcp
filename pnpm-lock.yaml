@@ -12,8 +12,8 @@ dependencies:
     specifier: ^1.8.0
     version: 1.8.0
   '@sentio/api':
-    specifier: ^1.0.2
-    version: 1.0.2
+    specifier: 1.0.3-rc.28
+    version: 1.0.3-rc.28
   commander:
     specifier: ^13.1.0
     version: 13.1.0
@@ -381,6 +381,7 @@ packages:
 
   /@hey-api/client-fetch@0.8.4:
     resolution: {integrity: sha512-SWtUjVEFIUdiJGR2NiuF0njsSrSdTe7WHWkp3BLH3DEl2bRhiflOnBo29NSDdrY90hjtTQiTQkBxUgGOF29Xzg==}
+    deprecated: Starting with v0.73.0, this package is bundled directly inside @hey-api/openapi-ts.
     dev: false
 
   /@hey-api/json-schema-ref-parser@1.0.6:
@@ -714,8 +715,8 @@ packages:
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
     dev: false
 
-  /@sentio/api@1.0.2:
-    resolution: {integrity: sha512-iKk0oMXfvNYQOFXH0jrdGze2wDuYt2GSEYz3uF4jrPeDXp0/es5JZJ4PG7mdET5MhCIWuMUqwQrY/NrL6xkF4Q==}
+  /@sentio/api@1.0.3-rc.28:
+    resolution: {integrity: sha512-ElnXvm6SIy0YD50q8MpSUpvvinRY3q8bqv6nPkLEcxnjTWGrmqZPEQRiIMYTRCcWqcncTFKCc8dLRQ01aYpA0w==}
     dependencies:
       '@hey-api/client-fetch': 0.8.4
     dev: false

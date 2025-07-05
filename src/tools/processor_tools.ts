@@ -27,6 +27,30 @@ export function registerProcessorTools(server: McpServer, client: Client, option
             }
         }
     )
+
+    server.tool("getProcessorSourceFiles", "Get processor source files", {
+        owner: z.string().describe("Project owner"),
+        slug: z.string().describe("Project slug"),
+    },
+        async ({ owner, slug }) => {
+            const response = await ProcessorService.getProcessorSourceFiles({
+                path: {
+                    owner,
+                    slug
+                },
+                client
+            })
+            if (response.error) {
+                throw response.error
+            }
+            return {
+                content: [{
+                    type: "text",
+                    text: JSON.stringify(response.data)
+                }]
+            }
+        }
+    )
 }
 
  
