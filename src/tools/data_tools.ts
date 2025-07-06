@@ -1,5 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { DataService, CommonRichStruct, CommonRichValue, CommonBigInteger, WebService } from "@sentio/api";
+import { DataService, common, WebService } from "@sentio/api";
 import z from "zod";
 import { Client } from "@hey-api/client-fetch";
 import { getProjectId } from "./web_tools.js";
@@ -151,7 +151,7 @@ export function registerDataTools(server: McpServer, client: Client, options: an
 
 }
 
-function toRichStruct(parameters?: Record<string, any>): CommonRichStruct | undefined {
+function toRichStruct(parameters?: Record<string, any>): common.RichStruct | undefined {
     if (!parameters) {
         return undefined;
     }
@@ -160,7 +160,7 @@ function toRichStruct(parameters?: Record<string, any>): CommonRichStruct | unde
     }
 }
 
-function toRichValue(value: any): CommonRichValue {
+function toRichValue(value: any): common.RichValue {
     if (value === null) {
         return {
             nullValue: "NULL_VALUE"
@@ -210,7 +210,7 @@ function toRichValue(value: any): CommonRichValue {
     }
 }
 
-function toBigInteger(value: bigint): CommonBigInteger {
+function toBigInteger(value: bigint): common.BigInteger {
     return {
         negative: value < 0n,
         data: value.toString(16)
