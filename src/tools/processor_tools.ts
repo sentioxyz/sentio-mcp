@@ -31,12 +31,16 @@ export function registerProcessorTools(server: McpServer, client: Client, option
     server.tool("getProcessorSourceFiles", "Get processor source files", {
         owner: z.string().describe("Project owner"),
         slug: z.string().describe("Project slug"),
+        version: z.number().describe("Version of the processor").optional()
     },
-        async ({ owner, slug }) => {
+        async ({ owner, slug, version }) => {
             const response = await ProcessorService.getProcessorSourceFiles({
                 path: {
                     owner,
                     slug
+                },
+                query: {
+                    version
                 },
                 client
             })

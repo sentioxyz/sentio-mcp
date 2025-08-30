@@ -12,8 +12,8 @@ dependencies:
     specifier: ^1.8.0
     version: 1.8.0
   '@sentio/api':
-    specifier: 1.0.3-rc.28
-    version: 1.0.3-rc.28
+    specifier: 1.0.3-rc.49
+    version: 1.0.3-rc.49
   commander:
     specifier: ^13.1.0
     version: 13.1.0
@@ -715,8 +715,8 @@ packages:
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
     dev: false
 
-  /@sentio/api@1.0.3-rc.28:
-    resolution: {integrity: sha512-ElnXvm6SIy0YD50q8MpSUpvvinRY3q8bqv6nPkLEcxnjTWGrmqZPEQRiIMYTRCcWqcncTFKCc8dLRQ01aYpA0w==}
+  /@sentio/api@1.0.3-rc.49:
+    resolution: {integrity: sha512-uMt8dKuKdL87h51sCN+0yYIz+Om8gLmx+fiHHosZC9zaQFHAjqzpFiHpX5AmWMyCgpXuo3YeD9MvMmB/ICW/vA==}
     dependencies:
       '@hey-api/client-fetch': 0.8.4
     dev: false
