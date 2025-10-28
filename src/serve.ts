@@ -6,6 +6,7 @@ import { registerDataTools } from "./tools/data_tools.js";
 import { registerPriceTools } from "./tools/price_tools.js";
 import { registerAlertsTools } from "./tools/alerts_tools.js";
 import { registerProcessorTools } from "./tools/processor_tools.js";
+import { registerDebugSimulationTools } from "./tools/debug_simulation_tools.js";
 
 // Create an adapter object to bridge between FastMCP and McpServer interfaces
 class ServerAdapter<T extends Record<string, unknown> | undefined> {
@@ -100,6 +101,7 @@ export async function runServe(options: any) {
     registerPriceTools(adapter as any, client, options);
     registerAlertsTools(adapter as any, client, options);
     registerProcessorTools(adapter as any, client, options);
+    registerDebugSimulationTools(adapter as any, client, options);
 
     // Track connections and disconnections
     server.on("connect", (event) => {

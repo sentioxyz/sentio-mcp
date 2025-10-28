@@ -6,6 +6,7 @@ import {registerDataTools} from "./tools/data_tools.js";
 import {registerPriceTools} from "./tools/price_tools.js";
 import {registerProcessorTools} from "./tools/processor_tools.js";
 import {registerAlertsTools} from "./tools/alerts_tools.js";
+import {registerDebugSimulationTools} from "./tools/debug_simulation_tools.js";
 
 export async function setupServer(options: any) {
     const client = createClient({
@@ -34,6 +35,7 @@ export async function setupServer(options: any) {
     registerPriceTools(server, client, options);
     registerAlertsTools(server, client, options);
     registerProcessorTools(server, client, options);
+    registerDebugSimulationTools(server, client, options);
 
     const { user, org } = await getCurrentUserOrOrg(client);
     console.error("Logged in as", user?.username ?? org?.name)
