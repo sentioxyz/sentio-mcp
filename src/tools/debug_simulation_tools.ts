@@ -165,7 +165,6 @@ function createCallTraceSummary(trace: any): any {
         },
         failedCalls: failedCalls.length > 0 ? failedCalls : undefined,
         contractsInvolved: Array.from(contracts).slice(0, 20), // Limit to first 20
-        callTreePreview: truncateCallTrace(trace, 2) // Show top 2 levels
     };
 }
 
