@@ -147,3 +147,5 @@ coverage/
 build/
 
 venv/
+
+.claude
