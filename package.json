@@ -5,7 +5,7 @@
    "main": "build/index.js",
    "type": "module",
    "bin": {
-      "sentio-mcp": "build/cli.js"
+      "sentio-mcp": "./build/cli.js"
    },
    "files": [
       "build/",
