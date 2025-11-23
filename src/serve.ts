@@ -73,7 +73,7 @@ export async function runServe(options: any) {
     // Create FastMCP server instance
     const server = new FastMCP({
         name: "Sentio MCP Server",
-        version: "1.1.4",
+        version: "1.1.5",
         authenticate: async (request) => {
             console.log("[serve] Authenticating request, headers:", {
                 hasAuth: !!request.headers["authorization"],

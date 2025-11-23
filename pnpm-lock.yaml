@@ -12,7 +12,7 @@ importers:
         specifier: ^0.10.0
         version: 0.10.2(@hey-api/openapi-ts@0.87.1(typescript@5.9.3))
       '@modelcontextprotocol/sdk':
-        specifier: ^1.8.0
+        specifier: 1.21.1
         version: 1.21.1
       '@sentio/api':
         specifier: 1.0.3-rc.49
