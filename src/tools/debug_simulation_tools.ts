@@ -1,5 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { DebugAndSimulationService } from "@sentio/api";
+import { DebugAndSimulationService, MoveService } from "@sentio/api";
 import z from "zod";
 import { Client } from "@hey-api/client-fetch";
 
@@ -103,6 +103,50 @@ function getCallByPath(trace: any, path: string): any | null {
 }
 
 export function registerDebugSimulationTools(server: McpServer, client: Client, _options: any) {
+
+    server.tool("getSuiCallTrace", "Get the call trace for a Sui transaction", {
+        networkId: z.string().describe("Network ID for Sui (e.g., '1' for mainnet, '2' for testnet)"),
+        txDigest: z.string().describe("Sui transaction digest"),
+    }, async ({ networkId, txDigest }) => {
+        const response = await MoveService.getSuiCallTrace({
+            query: {
+                networkId,
+                txDigest,
+            },
+            client,
+        });
+        if (response.error) {
+            throw response.error;
+        }
+        return {
+            content: [{
+                type: "text",
+                text: JSON.stringify(response.data, null, 2),
+            }]
+        };
+    });
+
+    server.tool("getAptosCallTrace", "Get the call trace for an Aptos transaction", {
+        networkId: z.string().describe("Network ID for Aptos (e.g., '1' for mainnet, '2' for testnet)"),
+        txHash: z.string().describe("Aptos transaction hash"),
+    }, async ({ networkId, txHash }) => {
+        const response = await MoveService.getCallTrace({
+            query: {
+                networkId,
+                txHash,
+            },
+            client,
+        });
+        if (response.error) {
+            throw response.error;
+        }
+        return {
+            content: [{
+                type: "text",
+                text: JSON.stringify(response.data, null, 2),
+            }]
+        };
+    });
 
     server.tool("getCallTraceByTransaction", "Get the call trace for a transaction without internal calls", {
         owner: z.string().describe("Project owner"),

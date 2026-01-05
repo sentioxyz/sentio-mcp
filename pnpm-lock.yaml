@@ -15,8 +15,8 @@ importers:
         specifier: 1.21.1
         version: 1.21.1
       '@sentio/api':
-        specifier: 1.0.3-rc.49
-        version: 1.0.3-rc.49
+        specifier: v1.0.4-rc.2
+        version: 1.0.4-rc.2
       commander:
         specifier: ^13.1.0
         version: 13.1.0
@@ -357,8 +357,8 @@ packages:
   '@sec-ant/readable-stream@0.4.1':
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
 
-  '@sentio/api@1.0.3-rc.49':
-    resolution: {integrity: sha512-uMt8dKuKdL87h51sCN+0yYIz+Om8gLmx+fiHHosZC9zaQFHAjqzpFiHpX5AmWMyCgpXuo3YeD9MvMmB/ICW/vA==}
+  '@sentio/api@1.0.4-rc.2':
+    resolution: {integrity: sha512-oN1iWQ+iZ/5xlrgHR4ZlbKQOyeVmAZfJIxdHW6bBI7FZkX0GsW/uOaVuv9mAFvJ+sALZmG+F/7OTV1MQLjvZFA==}
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
@@ -2316,7 +2316,7 @@ snapshots:
 
   '@sec-ant/readable-stream@0.4.1': {}
 
-  '@sentio/api@1.0.3-rc.49':
+  '@sentio/api@1.0.4-rc.2':
     dependencies:
       '@hey-api/client-fetch': 0.8.4
 

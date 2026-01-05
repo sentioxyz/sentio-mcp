@@ -1,6 +1,6 @@
 {
    "name": "@sentio/mcp",
-   "version": "1.1.5",
+   "version": "1.1.6",
    "description": "sentio mcp",
    "main": "build/index.js",
    "type": "module",
@@ -29,7 +29,7 @@
    "dependencies": {
       "@hey-api/client-fetch": "^0.10.0",
       "@modelcontextprotocol/sdk": "1.21.1",
-      "@sentio/api": "1.0.3-rc.49",
+      "@sentio/api": "v1.0.4-rc.2",
       "commander": "^13.1.0",
       "dotenv": "^16.3.1",
       "express": "^5.1.0",

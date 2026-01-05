@@ -1,5 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ProcessorService } from "@sentio/api";
+import { ProcessorService, ProcessorExtService } from "@sentio/api";
 import z from "zod";
 import { Client } from "@hey-api/client-fetch";
 
@@ -35,7 +35,7 @@ export function registerProcessorTools(server: McpServer, client: Client, option
         paths: z.array(z.string()).describe("Optional list of file paths to include").optional()
     },
         async ({ owner, slug, version, paths }) => {
-            const response = await ProcessorService.getProcessorSourceFiles({
+            const response = await ProcessorExtService.getProcessorSourceFiles({
                 path: {
                     owner,
                     slug
@@ -69,7 +69,7 @@ export function registerProcessorTools(server: McpServer, client: Client, option
         version: z.number().describe("Version of the processor").optional()
     },
         async ({ owner, slug, version }) => {
-            const response = await ProcessorService.getProcessorSourceFiles({
+            const response = await ProcessorExtService.getProcessorSourceFiles({
                 path: {
                     owner,
                     slug
