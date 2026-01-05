@@ -1,7 +1,7 @@
 import {McpServer} from "@modelcontextprotocol/sdk/server/mcp.js";
 import {StdioServerTransport} from "@modelcontextprotocol/sdk/server/stdio.js";
 import {createClient} from "@hey-api/client-fetch";
-import {getCurrentUserOrOrg, getProjectList, registerWebTools} from "./tools/web_tools.js";
+import {getCurrentUserOrOrg, registerWebTools} from "./tools/web_tools.js";
 import {registerDataTools} from "./tools/data_tools.js";
 import {registerPriceTools} from "./tools/price_tools.js";
 import {registerProcessorTools} from "./tools/processor_tools.js";
@@ -41,24 +41,6 @@ export async function setupServer(options: any) {
     console.error("Logged in as", user?.username ?? org?.name)
     const userId = user?.id
     const orgId = org?.id
-
-    const projects = await getProjectList(userId, orgId, client);
-    for (const project of projects) {
-        server.resource(
-            project.slug!,
-            `${options.host}/${project.ownerName}/${project.slug}`,
-            async (uri: URL) => {
-                return {
-                    contents: [{
-                        uri: uri.toString(),
-                        mimeType: "application/json",
-                        text: JSON.stringify(project)
-                    }]
-                }
-            }
-        )
-    }
-
     return { server, userId, orgId };
 }
 

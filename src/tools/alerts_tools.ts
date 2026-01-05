@@ -1,34 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { AlertsService } from "@sentio/api";
 import z from "zod";
-import { getProjectId } from "./web_tools.js";
 import { Client } from "@hey-api/client-fetch";
 
 export function registerAlertsTools(server: McpServer, client: Client, options: any) {
-    server.tool("getAlertRules", "Get alert rules", {
-        owner: z.string().describe("Project owner"),
-        slug: z.string().describe("Project slug"),
-    },
-        async ({ owner, slug }) => {
-            const projectId = await getProjectId(client, owner, slug)
-            const response = await AlertsService.getAlertRules({
-                path: {
-                    projectId
-                },
-                client
-            })
-            if (response.error) {
-                throw response.error
-            }
-            return {
-                content: [{
-                    type: "text",   
-                    text: JSON.stringify(response.data)
-                }]
-            }
-        }
-    )
-    
     server.tool("deleteAlertRule", "Delete an alert rule", {
         id: z.string().describe("Alert rule ID"),
     },

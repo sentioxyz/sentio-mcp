@@ -2,7 +2,6 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { DataService, common, WebService } from "@sentio/api";
 import z from "zod";
 import { Client } from "@hey-api/client-fetch";
-import { getProjectId } from "./web_tools.js";
 export function registerDataTools(server: McpServer, client: Client, options: any) {
     server.tool("executeSql", "Execute SQL in a project", {
         owner: z.string().describe("Project owner"),
@@ -75,16 +74,11 @@ export function registerDataTools(server: McpServer, client: Client, options: an
     });
 
     server.tool("getMetrics", "Get a list of metrics in a project", {
-        owner: z.string().describe("Project owner"),
-        slug: z.string().describe("Project slug"),
         version: z.number().describe("Version of the project").default(0)
 
-    }, async ({ owner, slug, version }) => {
-        const projectId = await getProjectId(client, owner, slug)
-
+    }, async ({ version }) => {
         const response = await DataService.getMetrics({
             query: {
-                projectId: projectId,
                 version: version
             },
             client

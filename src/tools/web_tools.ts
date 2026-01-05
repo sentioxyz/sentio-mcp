@@ -3,21 +3,6 @@ import { WebService } from "@sentio/api";
 import z from "zod";
 import { Client } from "@hey-api/client-fetch";
 
-export async function getProjectList(userId: string, orgId: string, client: Client) {
-    const response = await WebService.getProjectList({
-        query: {
-            userId: userId,
-            organizationId: orgId
-        },
-        client
-    })
-    if (response.error) {
-        throw response.error
-    }
-    const projects = [...(response.data?.projects ?? []), ...(response.data?.sharedProjects ?? []), ...(response.data?.orgProjects ?? [])]
-    return projects
-}
-
 export async function getCurrentUserOrOrg(client: Client) {
     const response = await client.get({
         url: "/api/v1/users"
@@ -39,49 +24,6 @@ export async function getCurrentUserOrOrg(client: Client) {
 
 export function registerWebTools(server: McpServer, client: Client, options: any) {
     const host = options.host;
-
-    server.tool("getProjectList", "Get project list", {
-        userId: z.string().describe("User ID"),
-        orgId: z.string().describe("Organization ID"),
-    },
-        async ({ userId, orgId }) => {
-            const projects = await getProjectList(userId, orgId, client);
-            return {
-                content: projects.map(p => ({
-                    type: "resource",
-                    resource: {
-                        uri: `${host}/${p.ownerName}/${p.slug}`,
-                        text: JSON.stringify(p),
-                        mimeType: "application/json"
-                    }
-                }))
-            }
-        }
-    )
-
-    server.tool("getProject", "Get project", {
-        owner: z.string().describe("Project owner"),
-        slug: z.string().describe("Project slug"),
-    },
-        async ({ owner, slug }) => {
-            const response = await WebService.getProject({
-                path: {
-                    owner,
-                    slug
-                },
-                client
-            })  
-            if (response.error) {
-                throw response.error
-            }
-            return {
-                content: [{
-                    type: "text",
-                    text: JSON.stringify(response.data)
-                }]
-            }
-        }
-    )
 
     server.tool("listDashboards", "List all dashboards in a project", {
         owner: z.string().describe("Project owner"),
@@ -200,20 +142,4 @@ export function registerWebTools(server: McpServer, client: Client, options: any
             }
         }
     )
-}
-
-
-export async function getProjectId(client: Client, owner: string, slug: string) {
-    const prjRes = await WebService.getProject({
-        path: {
-            owner,
-            slug
-        }, client
-    })
-    if (prjRes.error) {
-        throw prjRes.error;
-    }
-    const project = prjRes.data?.project;
-    
-    return project?.id!;
 }
