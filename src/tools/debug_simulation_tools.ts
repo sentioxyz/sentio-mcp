@@ -105,7 +105,7 @@ function getCallByPath(trace: any, path: string): any | null {
 export function registerDebugSimulationTools(server: McpServer, client: Client, _options: any) {
 
     server.tool("getSuiCallTrace", "Get the call trace for a Sui transaction", {
-        networkId: z.string().describe("Network ID for Sui (e.g., '1' for mainnet, '2' for testnet)"),
+        networkId: z.string().describe("Network ID for Sui ('1001' for mainnet, '1002' for testnet)"),
         txDigest: z.string().describe("Sui transaction digest"),
     }, async ({ networkId, txDigest }) => {
         const response = await MoveService.getSuiCallTrace({
@@ -127,7 +127,7 @@ export function registerDebugSimulationTools(server: McpServer, client: Client, 
     });
 
     server.tool("getAptosCallTrace", "Get the call trace for an Aptos transaction", {
-        networkId: z.string().describe("Network ID for Aptos (e.g., '1' for mainnet, '2' for testnet)"),
+        networkId: z.string().describe("Network ID for Aptos ('1' for mainnet, '2' for testnet)"),
         txHash: z.string().describe("Aptos transaction hash"),
     }, async ({ networkId, txHash }) => {
         const response = await MoveService.getCallTrace({
