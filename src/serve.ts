@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+import { readFileSync } from "node:fs";
 import { Client, createClient } from "@hey-api/client-fetch";
 import { FastMCP } from "fastmcp";
 import { z } from "zod";
@@ -8,14 +10,39 @@ import { registerAlertsTools } from "./tools/alerts_tools.js";
 import { registerProcessorTools } from "./tools/processor_tools.js";
 import { registerDebugSimulationTools } from "./tools/debug_simulation_tools.js";
 
-// Create an adapter object to bridge between FastMCP and McpServer interfaces
-class ServerAdapter<T extends Record<string, unknown> | undefined> {
-    private server: FastMCP<T>;
-    private client: Client;
+export interface SessionAuth {
+    token?: string;
+    apiKey?: string;
+}
 
-    constructor(server: FastMCP<T>, client: Client) {
+// Credentials of the session whose tool call is currently executing. The client is shared by
+// all sessions, so auth must be resolved per request rather than by mutating the client.
+const sessionAuth = new AsyncLocalStorage<SessionAuth>();
+
+// Install the single auth interceptor on the shared client: the calling session's credentials
+// win, and the server's own options are used outside a session (or when it has none).
+export function installAuthInterceptor(client: Client, options: any) {
+    client.interceptors.request.use((request) => {
+        const session = sessionAuth.getStore();
+        if (session?.token) {
+            request.headers.set("Authorization", session.token);
+        } else if (session?.apiKey) {
+            request.headers.set("api-key", session.apiKey);
+        } else if (options.apiKey) {
+            request.headers.set("api-key", options.apiKey);
+        } else if (options.token) {
+            request.headers.set("Authorization", `Bearer ${options.token}`);
+        }
+        return request;
+    });
+}
+
+// Create an adapter object to bridge between FastMCP and McpServer interfaces
+export class ServerAdapter<T extends Record<string, unknown> | undefined> {
+    private server: FastMCP<T>;
+
+    constructor(server: FastMCP<T>) {
         this.server = server;
-        this.client = client;
     }
 
     // Implement the `tool` method used by the tools
@@ -25,24 +52,17 @@ class ServerAdapter<T extends Record<string, unknown> | undefined> {
             description: description,
             parameters: z.object(parameters),
             execute: async (args: any, { session }) => {
+                const auth = (session ?? {}) as SessionAuth;
                 console.log(`[serve] Executing tool: ${name}, session:`, {
-                    hasToken: !!session?.token,
-                    hasApiKey: !!session?.apiKey
+                    hasToken: !!auth.token,
+                    hasApiKey: !!auth.apiKey
                 });
-                
-                this.client.interceptors.request.use((request) => {
-                    if (session?.token) {
-                        request.headers.set("Authorization", `${session.token}`);
-                        console.log(`[serve] Set Authorization from session for tool: ${name}`);
-                    } else if (session?.apiKey) {
-                        request.headers.set("api-key", `${session.apiKey}`);
-                        console.log(`[serve] Set api-key from session for tool: ${name}`);
-                    }
-                    return request;
-                })
-                // Pass the context to tools so they can access auth
+
                 try {
-                    const result = await execute(args);
+                    const result = await sessionAuth.run(
+                        { token: auth.token, apiKey: auth.apiKey },
+                        () => execute(args)
+                    );
                     console.log(`[serve] Tool ${name} executed successfully`);
                     return result;
                 } catch (error) {
@@ -52,6 +72,11 @@ class ServerAdapter<T extends Record<string, unknown> | undefined> {
             }
         });
     }
+}
+
+function packageVersion(): string {
+    const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+    return pkg.version;
 }
 
 function decodeJWT(token: string) {
@@ -73,7 +98,7 @@ export async function runServe(options: any) {
     // Create FastMCP server instance
     const server = new FastMCP({
         name: "Sentio MCP Server",
-        version: "1.1.5",
+        version: packageVersion() as `${number}.${number}.${number}`,
         authenticate: async (request) => {
             console.log("[serve] Authenticating request, headers:", {
                 hasAuth: !!request.headers["authorization"],
@@ -115,21 +140,10 @@ export async function runServe(options: any) {
     
     console.log("[serve] Created API client with baseUrl:", options.host || "https://app.sentio.xyz");
     
-    // We'll set up the auth interceptor using the context
-    client.interceptors.request.use((request, context: any) => {
-        console.log("[serve] Request interceptor - setting auth headers");
-        if (options.apiKey) {
-            request.headers.set("api-key", options.apiKey);
-            console.log("[serve] Set api-key header from options");
-        } else if (options.token) {
-            request.headers.set("Authorization", `Bearer ${options.token}`);
-            console.log("[serve] Set Authorization header from options");
-        }
-        return request;
-    });
+    installAuthInterceptor(client, options);
 
     // Create an adapter to make the tools work with FastMCP
-    const adapter = new ServerAdapter(server, client);
+    const adapter = new ServerAdapter(server);
     
     console.log("[serve] Registering tools...");
     // Register all tools from tools directory using the adapter
