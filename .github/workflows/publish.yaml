@@ -1,0 +1,28 @@
+name: Publish
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.3.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test --runInBand
+      - name: Publish to npm
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+        run: npm publish --provenance --access public --tag latest
